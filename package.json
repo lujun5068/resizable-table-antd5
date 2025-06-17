@@ -19,7 +19,6 @@
     "doctor": "father doctor",
     "prepublishOnly": "father doctor && npm run build"
   },
-  "keywords": [],
   "authors": [
     "LuJun <lujun5068@gmail.com>"
   ],
