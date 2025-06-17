@@ -1,0 +1,41 @@
+{
+  "name": "resizable-table-antd5",
+  "version": "0.0.1",
+  "description": "支持自定义拖拽调整列宽的表格组件",
+  "module": "dist/esm/index.js",
+  "types": "dist/esm/index.d.ts",
+  "scripts": {
+    "dev": "father dev",
+    "build": "father build",
+    "build:deps": "father prebundle",
+    "doctor": "father doctor",
+    "prepublishOnly": "father doctor && npm run build"
+  },
+  "keywords": [],
+  "authors": [
+    "LuJun <lujun5068@gmail.com>"
+  ],
+  "license": "MIT",
+  "files": [
+    "dist",
+    "compiled",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.3",
+    "@types/react": "^19.1.8",
+    "@types/react-resizable": "^3.0.8",
+    "father": "^4.5.6"
+  },
+  "dependencies": {
+    "@babel/runtime": "^7.27.6",
+    "react-resizable": "^3.0.5"
+  },
+  "peerDependencies": {
+    "antd": "^5.26.1",
+    "react": "^19.1.0"
+  }
+}
