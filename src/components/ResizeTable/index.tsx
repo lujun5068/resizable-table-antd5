@@ -37,6 +37,8 @@ interface ResizeTableProps<T> extends Omit<TableProps<T>, 'columns'> {
   storageKey?: string;
 }
 
+export type { ResizeTableProps };
+
 export interface ResizeTableRef {
   scrollToTop: () => void;
 }

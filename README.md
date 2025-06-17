@@ -1,5 +1,5 @@
 # resizable-table-antd5
-- 支持自定义拖拽调整表格列宽的 `Table` 组件，基于 `antd`
+- 支持自定义拖拽调整表格列宽的 `Table` 组件，基于 `antd5.+`
 - 本地持久化保存列宽配置
 
 [![NPM version](https://img.shields.io/npm/v/resizable-table-antd5.svg?style=flat)](https://npmjs.com/package/resizable-table-antd5)
@@ -13,7 +13,7 @@ $ pnpm install
 
 ## Usage
 
-``` javascript
+``` jsx
 import ResizableTable from "resizable-table-antd5"
 
 <ResizeTable
