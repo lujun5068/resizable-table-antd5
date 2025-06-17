@@ -1,9 +1,17 @@
 {
   "name": "resizable-table-antd5",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "支持自定义拖拽调整列宽的表格组件",
   "module": "dist/esm/index.js",
   "types": "dist/esm/index.d.ts",
+  "keywords": [
+    "resizable-table",
+    "resizable-table-antd5",
+    "react table",
+    "resizable table",
+    "自定义拖拽调整列宽",
+    "持久化存储"
+  ],
   "scripts": {
     "dev": "father dev",
     "build": "father build",
