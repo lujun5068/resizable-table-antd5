@@ -1,6 +1,6 @@
 {
   "name": "resizable-table-antd5",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "支持自定义拖拽调整列宽的表格组件",
   "module": "dist/esm/index.js",
   "types": "dist/esm/index.d.ts",

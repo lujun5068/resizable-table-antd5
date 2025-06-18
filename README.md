@@ -6,7 +6,7 @@
 [![NPM version](https://img.shields.io/npm/v/resizable-table-antd5.svg?style=flat)](https://npmjs.com/package/resizable-table-antd5)
 [![NPM downloads](http://img.shields.io/npm/dm/resizable-table-antd5.svg?style=flat)](https://npmjs.com/package/resizable-table-antd5)
 
- ![表格示例](./test.png)
+ ![表格示例](https://images-1343185556.cos.ap-shanghai.myqcloud.com/project/test.png)
 
 ## Install
 
@@ -21,6 +21,7 @@ import ResizableTable from "resizable-table-antd5"
 
 <ResizeTable
   virtual
+  showColumnConfig
   rowKey="id"
   columns={columns}
   dataSource={dataSource}
@@ -32,7 +33,7 @@ import ResizableTable from "resizable-table-antd5"
 ## Options
 
 - `storageKey` 可选 `string`，默认 `table-columns-width`，用于存储列表列宽配置
-- `showHeadConfig` 可选 `boolean` 
+- `showColumnConfig` 可选 `boolean` 
 - 其他详见 `antd Table` 组件文档
 
 
