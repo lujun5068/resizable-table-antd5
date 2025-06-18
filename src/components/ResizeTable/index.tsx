@@ -1,5 +1,6 @@
+import { MenuOutlined, SettingOutlined } from '@ant-design/icons';
 import type { TableProps } from 'antd';
-import { Table } from 'antd';
+import { Button, Checkbox, Dropdown, Table } from 'antd';
 import React, {
   forwardRef,
   useCallback,
@@ -9,9 +10,18 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { DraggableArea } from 'react-draggable-tags';
 import { Resizable } from 'react-resizable';
 import 'react-resizable/css/styles.css';
 import './index.less';
+import {
+  getTableColWidthConfig,
+  getTableHeaderConfig,
+  getTableHeaderSortConfig,
+  setTableColWidthConfig,
+  setTableHeaderConfig,
+  setTableHeaderSortConfig,
+} from './utils';
 
 // Custom debounce implementation
 function debounce<T extends (...args: any[]) => any>(
@@ -32,12 +42,11 @@ function debounce<T extends (...args: any[]) => any>(
   };
 }
 
-interface ResizeTableProps<T> extends Omit<TableProps<T>, 'columns'> {
+export interface ResizeTableProps<T> extends Omit<TableProps<T>, 'columns'> {
   columns: any[];
   storageKey?: string;
+  showColumnConfig?: boolean;
 }
-
-export type { ResizeTableProps };
 
 export interface ResizeTableRef {
   scrollToTop: () => void;
@@ -51,10 +60,15 @@ const ResizeTable = forwardRef(
     const {
       columns: defaultColumns,
       storageKey = 'table-columns-width',
+      showColumnConfig = false,
       ...restProps
     } = props;
+    const [dropdownKey, setDropdownKey] = useState(0);
     const [columns, setColumns] = useState(defaultColumns);
     const tblRef = useRef<any>(null);
+    const timerRef = useRef<NodeJS.Timeout | null>(null);
+    const [columnCheckList, setColumnCheckList] = useState<string[]>([]);
+    const initKeys = defaultColumns.map((col) => col.dataIndex);
 
     useImperativeHandle(ref, () => ({
       scrollToTop: () => {
@@ -62,17 +76,41 @@ const ResizeTable = forwardRef(
       },
     }));
 
+    const getColumnsFormKeys = (cols: any[], sortKeys: any[]) => {
+      if (!sortKeys || !sortKeys?.length) return cols;
+      return sortKeys.reduce((p: any[], n: any) => {
+        const t = cols.find((item: any) => item.dataIndex === n);
+        if (t) {
+          p.push(t);
+        }
+        return p;
+      }, []);
+    };
+
+    const updateColumnWidthByStorageConfig = (sortColumns: any[]) => {
+      const parsedWidths = getTableColWidthConfig(storageKey, defaultColumns);
+      const newColumns = sortColumns.map((col) => ({
+        ...col,
+        width: parsedWidths[col.dataIndex] || col.width,
+      }));
+      return newColumns;
+    };
+
     // 从本地存储加载列宽
     useEffect(() => {
-      const savedWidths = localStorage.getItem(storageKey);
-      if (savedWidths) {
-        const parsedWidths = JSON.parse(savedWidths);
-        const newColumns = defaultColumns.map((col) => ({
-          ...col,
-          width: parsedWidths[col.dataIndex] || col.width,
-        }));
-        setColumns(newColumns);
-      }
+      const headerConfig = getTableHeaderConfig(storageKey, initKeys);
+      const sortKeys = getTableHeaderSortConfig(
+        storageKey,
+        defaultColumns.map((col) => col.dataIndex)
+      ).filter((item: string) => headerConfig.includes(item));
+      const sortColumns = getColumnsFormKeys(defaultColumns, sortKeys);
+      setColumns(updateColumnWidthByStorageConfig(sortColumns));
+      setColumnCheckList(headerConfig);
+      return () => {
+        if (timerRef.current) {
+          clearTimeout(timerRef.current);
+        }
+      };
     }, [defaultColumns, storageKey]);
 
     // 使用 useMemo 计算表格总宽度和最后一列的宽度
@@ -97,7 +135,7 @@ const ResizeTable = forwardRef(
             if (col.dataIndex) acc[col.dataIndex] = Number(col.width) || 0;
             return acc;
           }, {} as Record<string, number>);
-          localStorage.setItem(storageKey, JSON.stringify(widths));
+          setTableColWidthConfig(storageKey, widths);
         }, 300),
       [storageKey]
     );
@@ -147,13 +185,122 @@ const ResizeTable = forwardRef(
       },
     };
 
+    const onCheckChange = (checked: boolean, id: string) => {
+      if (checked) {
+        setColumnCheckList([...columnCheckList, id]);
+      } else {
+        setColumnCheckList(columnCheckList.filter((item) => item !== id));
+      }
+    };
+
+    const handleReset = () => {
+      setTableHeaderSortConfig(storageKey, initKeys);
+      setColumnCheckList(initKeys);
+      setTableHeaderConfig(storageKey, initKeys);
+      setColumns(updateColumnWidthByStorageConfig(defaultColumns));
+    };
+
+    const handleConfirm = () => {
+      const sortKeys =
+        getTableHeaderSortConfig(storageKey, initKeys) || initKeys;
+      const headerKeys = sortKeys.filter((item: string) =>
+        columnCheckList.includes(item)
+      );
+      setColumns(
+        updateColumnWidthByStorageConfig(
+          getColumnsFormKeys(defaultColumns, headerKeys)
+        )
+      );
+      setTableHeaderConfig(storageKey, headerKeys);
+      timerRef.current = setTimeout(() => {
+        const dom = document.querySelector('.tableHeaderConfig');
+        if (dom) {
+          dom.classList.add('ant-dropdown-hidden');
+          setDropdownKey(Math.random());
+        }
+      }, 100);
+    };
+
+    const dropdownRender = () => {
+      const sortColumns = defaultColumns?.map((c) => ({
+        ...c,
+        id: c.dataIndex,
+      }));
+
+      const tags = getColumnsFormKeys(
+        sortColumns,
+        getTableHeaderSortConfig(storageKey, initKeys)
+      );
+      return (
+        <div>
+          <div className="configMain">
+            <DraggableArea
+              isList
+              tags={tags}
+              render={({ tag }: any) => (
+                <div key={tag.id} className={'checkColItem'}>
+                  <MenuOutlined
+                    style={{ cursor: 'grab', marginRight: 4, color: '#666' }}
+                  />
+                  <Checkbox
+                    style={{ width: '100', cursor: 'pointer' }}
+                    checked={columnCheckList.includes(tag.id)}
+                    onChange={(e: any) => {
+                      onCheckChange(e.target.checked, tag.id);
+                    }}
+                  >
+                    {tag.title}
+                  </Checkbox>
+                </div>
+              )}
+              onChange={(tags: any[]) => {
+                const finalKeys = tags.map((t: any) => t.id);
+                setTableHeaderSortConfig(storageKey, finalKeys);
+                setColumns(
+                  updateColumnWidthByStorageConfig(
+                    getColumnsFormKeys(columns, finalKeys)
+                  )
+                );
+              }}
+            />
+          </div>
+          <div className="configFooter">
+            <Button
+              type="text"
+              size="small"
+              onClick={handleReset}
+              style={{ color: '#2a54d1' }}
+            >
+              重置
+            </Button>
+            <Button type="primary" size="small" onClick={handleConfirm}>
+              确定
+            </Button>
+          </div>
+        </div>
+      );
+    };
+
     return (
-      <Table
-        {...restProps}
-        columns={finalColumns}
-        components={components}
-        ref={tblRef}
-      />
+      <div className="resizeTable">
+        {showColumnConfig && (
+          <Dropdown
+            key={dropdownKey}
+            trigger={['click']}
+            overlayClassName="tableHeaderConfig"
+            popupRender={() => dropdownRender()}
+            arrow={false}
+          >
+            <Button icon={<SettingOutlined />}>栏目配置</Button>
+          </Dropdown>
+        )}
+        <Table
+          {...restProps}
+          columns={finalColumns}
+          components={components}
+          ref={tblRef}
+        />
+      </div>
     );
   }
 );
